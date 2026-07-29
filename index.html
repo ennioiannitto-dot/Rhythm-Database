@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12151a">
+<title>Tongue — Ritmi &amp; Tab</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="19" fill="none" stroke="var(--accent-dum)" stroke-width="1.4"/>
+      <circle cx="20" cy="20" r="4.5" fill="var(--accent-dum)"/>
+      <g stroke="var(--border-strong)" stroke-width="1.1">
+        <ellipse cx="20" cy="8.2" rx="3.1" ry="4.6"/>
+        <ellipse cx="30.3" cy="14.3" rx="3.1" ry="4.6" transform="rotate(60 30.3 14.3)"/>
+        <ellipse cx="30.3" cy="25.7" rx="3.1" ry="4.6" transform="rotate(120 30.3 25.7)"/>
+        <ellipse cx="20" cy="31.8" rx="3.1" ry="4.6" transform="rotate(180 20 31.8)"/>
+        <ellipse cx="9.7" cy="25.7" rx="3.1" ry="4.6" transform="rotate(240 9.7 25.7)"/>
+        <ellipse cx="9.7" cy="14.3" rx="3.1" ry="4.6" transform="rotate(300 9.7 14.3)"/>
+      </g>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-title">Tongue</span>
+      <span class="brand-sub">D Kurd minore · 9 note</span>
+    </div>
+  </div>
+  <button id="btn-settings" class="icon-btn" title="Impostazioni e backup" aria-label="Impostazioni">⚙</button>
+</header>
+
+<main id="main">
+
+  <!-- VISTA: LISTA RITMI -->
+  <section id="view-rhythms-list" class="view">
+    <div class="view-toolbar">
+      <input type="search" id="rhythms-search" class="search-input" placeholder="Cerca per titolo o atmosfera…">
+      <button class="btn btn-fav-filter" id="rhythms-fav-toggle" title="Solo preferiti">★</button>
+    </div>
+    <div class="filter-row">
+      <select id="rhythms-sort" class="select-sm">
+        <option value="modifica-desc">Ultima modifica</option>
+        <option value="creazione-desc">Data creazione</option>
+        <option value="titolo-asc">Titolo A→Z</option>
+      </select>
+      <div id="rhythms-cat-chips" class="chip-row"></div>
+    </div>
+    <div id="rhythms-list" class="card-list"></div>
+    <p id="rhythms-empty" class="empty-state hidden">Nessun ritmo qui. Tocca “Nuovo ritmo” per iniziare.</p>
+  </section>
+
+  <!-- VISTA: LISTA CANZONI -->
+  <section id="view-songs-list" class="view hidden">
+    <div class="view-toolbar">
+      <input type="search" id="songs-search" class="search-input" placeholder="Cerca per titolo o atmosfera…">
+      <button class="btn btn-fav-filter" id="songs-fav-toggle" title="Solo preferiti">★</button>
+    </div>
+    <div class="filter-row">
+      <select id="songs-sort" class="select-sm">
+        <option value="modifica-desc">Ultima modifica</option>
+        <option value="creazione-desc">Data creazione</option>
+        <option value="titolo-asc">Titolo A→Z</option>
+      </select>
+      <div id="songs-cat-chips" class="chip-row"></div>
+    </div>
+    <div id="songs-list" class="card-list"></div>
+    <p id="songs-empty" class="empty-state hidden">Nessuna canzone qui. Tocca “Nuova canzone” per iniziare.</p>
+  </section>
+
+  <!-- VISTA: METRONOMO -->
+  <section id="view-metronome" class="view hidden">
+    <div class="metro-panel">
+      <div class="metro-visual" id="metro-visual">
+        <div class="metro-pulse" id="metro-pulse"></div>
+        <div class="metro-bpm" id="metro-bpm-display">96</div>
+        <div class="metro-bpm-label">BPM</div>
+      </div>
+      <div class="metro-bpm-controls">
+        <button class="btn btn-round" id="metro-bpm-minus">−</button>
+        <input type="range" id="metro-bpm-slider" min="30" max="220" value="96">
+        <button class="btn btn-round" id="metro-bpm-plus">+</button>
+      </div>
+
+      <div class="metro-section">
+        <div class="metro-section-title">Battute per misura e suddivisione</div>
+        <div class="field-row">
+          <label>Battiti
+            <select id="metro-beats"></select>
+          </label>
+          <label>Suddivisione
+            <select id="metro-subdiv">
+              <option value="1">Quarti</option>
+              <option value="2" selected>Ottavi</option>
+              <option value="3">Terzine</option>
+              <option value="4">Sedicesimi</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="metro-section">
+        <div class="metro-section-title">Accenti (tocca per ciclare: muto → normale → accento)</div>
+        <div id="metro-grid" class="metro-grid"></div>
+      </div>
+
+      <div class="metro-section">
+        <div class="metro-section-title">Loop misure suonate / mute</div>
+        <div class="field-row">
+          <label>Misure suonate
+            <input type="number" id="metro-bars-on" min="1" max="16" value="4">
+          </label>
+          <label>Misure mute
+            <input type="number" id="metro-bars-off" min="0" max="16" value="0">
+          </label>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block btn-lg" id="metro-play">▶ Avvia metronomo</button>
+    </div>
+  </section>
+
+  <!-- VISTA: BACKUP / IMPOSTAZIONI -->
+  <section id="view-settings" class="view hidden">
+    <h2 class="section-h">Backup</h2>
+    <p class="hint-text">Esporta un file JSON con tutti i ritmi e le canzoni. Importalo su un altro dispositivo per unirlo alla libreria esistente, senza cancellare nulla.</p>
+    <button class="btn btn-primary btn-block" id="btn-export">⬇ Scarica backup completo</button>
+    <label class="btn btn-secondary btn-block" for="import-file">⬆ Importa backup (unisce)</label>
+    <input type="file" id="import-file" accept="application/json" class="hidden">
+    <p id="import-result" class="hint-text"></p>
+
+    <h2 class="section-h">Notazione</h2>
+    <div class="field-row">
+      <label>Mostra note come
+        <select id="setting-notation-mode">
+          <option value="numero">Numero (1–9)</option>
+          <option value="lettera">Lettera (D, A, C…)</option>
+          <option value="solfeggio">Solfeggio (Do, Re, Mi…)</option>
+        </select>
+      </label>
+    </div>
+
+    <h2 class="section-h">Mappa note dello strumento</h2>
+    <p class="hint-text">Posizione 0 = Dum centrale. 1–8 = le lingue in senso orario. Modifica se il tuo strumento è accordato diversamente.</p>
+    <div id="note-map-editor" class="note-map-editor"></div>
+
+    <h2 class="section-h">Categorie / tag</h2>
+    <p class="hint-text">Elenco dei tag disponibili per classificare ritmi e canzoni (es. 4/4, sincopato…).</p>
+    <div class="field-row">
+      <input type="text" id="new-category-input" placeholder="Nuova categoria…">
+      <button class="btn btn-secondary" id="btn-add-category">Aggiungi</button>
+    </div>
+    <div id="category-manage-list" class="chip-row"></div>
+
+    <h2 class="section-h">App</h2>
+    <p class="hint-text version-hint">Schema dati v<span id="schema-version"></span> · funziona offline · nessuna sincronizzazione automatica: usa il backup per allineare i dispositivi.</p>
+  </section>
+
+  <!-- VISTA: EDITOR RITMO -->
+  <section id="view-rhythm-editor" class="view hidden">
+    <div class="editor-header">
+      <button class="btn-back" id="rhythm-back">← Indietro</button>
+      <button class="btn-icon-danger hidden" id="rhythm-delete" title="Elimina ritmo">🗑</button>
+    </div>
+
+    <div id="rhythm-setup" class="setup-box">
+      <h2 class="section-h">Nuovo ritmo</h2>
+      <div class="field-row">
+        <label>Battiti per misura
+          <select id="rhythm-setup-beats"></select>
+        </label>
+        <label>Suddivisione
+          <select id="rhythm-setup-subdiv">
+            <option value="1">Quarti</option>
+            <option value="2" selected>Ottavi</option>
+            <option value="3">Terzine</option>
+            <option value="4">Sedicesimi</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint-text">Tempo e suddivisione non saranno più modificabili dopo la creazione: per una variante, duplica il ritmo.</p>
+      <button class="btn btn-primary btn-block" id="rhythm-setup-confirm">Crea griglia</button>
+    </div>
+
+    <div id="rhythm-form" class="hidden">
+      <input type="text" id="rhythm-title" class="title-input" placeholder="Titolo del ritmo">
+      <div class="field-row">
+        <label>BPM di riferimento
+          <input type="number" id="rhythm-bpm" min="20" max="300" placeholder="es. 100">
+        </label>
+        <label class="fav-field">
+          <input type="checkbox" id="rhythm-favorite">
+          <span>★ Preferito</span>
+        </label>
+      </div>
+      <textarea id="rhythm-notes" class="notes-input" placeholder="Note: che atmosfera crea, che tipo di ritmo è, dove si usa…"></textarea>
+      <div class="cat-select-wrap">
+        <div class="section-h-sm">Categorie</div>
+        <div id="rhythm-cat-select" class="chip-row"></div>
+      </div>
+
+      <div class="tempo-info-bar">
+        <span id="rhythm-tempo-label" class="hint-text"></span>
+        <button class="btn-link" id="rhythm-tempo-change-btn">Cambia tempo/battute</button>
+      </div>
+      <div id="rhythm-tempo-change-panel" class="tempo-change-panel hidden">
+        <div class="field-row">
+          <label>Battiti per misura <select id="rhythm-change-beats"></select></label>
+          <label>Suddivisione
+            <select id="rhythm-change-subdiv">
+              <option value="1">Quarti</option>
+              <option value="2">Ottavi</option>
+              <option value="3">Terzine</option>
+              <option value="4">Sedicesimi</option>
+            </select>
+          </label>
+        </div>
+        <div class="editor-actions">
+          <button class="btn btn-ghost" id="rhythm-tempo-cancel">Annulla</button>
+          <button class="btn btn-primary" id="rhythm-tempo-apply">Applica</button>
+        </div>
+      </div>
+
+      <div class="section-h-sm legend-row">
+        Griglia — tocca per ciclare Dum / Ta / Ka, tieni premuto per l'intensità
+        <span class="legend"><span class="dot dot-dum"></span>Dum <span class="dot dot-ta"></span>Ta <span class="dot dot-ka"></span>Ka</span>
+      </div>
+      <div id="rhythm-bars" class="bars-wrap"></div>
+      <button class="btn btn-secondary btn-block" id="rhythm-add-bar">+ Aggiungi misura</button>
+
+      <div class="editor-actions">
+        <button class="btn btn-ghost" id="rhythm-play-toggle">▶ Riproduci in loop</button>
+        <button class="btn btn-primary" id="rhythm-save">Salva ritmo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISTA: EDITOR CANZONE -->
+  <section id="view-song-editor" class="view hidden">
+    <div class="editor-header">
+      <button class="btn-back" id="song-back">← Indietro</button>
+      <button class="btn-icon-danger hidden" id="song-delete" title="Elimina canzone">🗑</button>
+    </div>
+
+    <div id="song-setup" class="setup-box">
+      <h2 class="section-h">Nuova canzone</h2>
+      <div class="field-row">
+        <label>Battiti per misura
+          <select id="song-setup-beats"></select>
+        </label>
+        <label>Suddivisione
+          <select id="song-setup-subdiv">
+            <option value="1">Quarti</option>
+            <option value="2" selected>Ottavi</option>
+            <option value="3">Terzine</option>
+            <option value="4">Sedicesimi</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint-text">Tempo e suddivisione non saranno più modificabili dopo la creazione: per una variante, duplica la canzone.</p>
+      <button class="btn btn-primary btn-block" id="song-setup-confirm">Crea griglia</button>
+    </div>
+
+    <div id="song-form" class="hidden">
+      <input type="text" id="song-title" class="title-input" placeholder="Titolo della canzone">
+      <div class="field-row">
+        <label>BPM di riferimento
+          <input type="number" id="song-bpm" min="20" max="300" placeholder="es. 100">
+        </label>
+        <label class="fav-field">
+          <input type="checkbox" id="song-favorite">
+          <span>★ Preferito</span>
+        </label>
+      </div>
+      <textarea id="song-notes" class="notes-input" placeholder="Note: atmosfera, versione, dove l'hai imparata…"></textarea>
+      <div class="cat-select-wrap">
+        <div class="section-h-sm">Categorie</div>
+        <div id="song-cat-select" class="chip-row"></div>
+      </div>
+
+      <div class="tempo-info-bar">
+        <span id="song-tempo-label" class="hint-text"></span>
+        <button class="btn-link" id="song-tempo-change-btn">Cambia tempo/battute</button>
+      </div>
+      <div id="song-tempo-change-panel" class="tempo-change-panel hidden">
+        <div class="field-row">
+          <label>Battiti per misura <select id="song-change-beats"></select></label>
+          <label>Suddivisione
+            <select id="song-change-subdiv">
+              <option value="1">Quarti</option>
+              <option value="2">Ottavi</option>
+              <option value="3">Terzine</option>
+              <option value="4">Sedicesimi</option>
+            </select>
+          </label>
+        </div>
+        <div class="editor-actions">
+          <button class="btn btn-ghost" id="song-tempo-cancel">Annulla</button>
+          <button class="btn btn-primary" id="song-tempo-apply">Applica</button>
+        </div>
+      </div>
+
+      <div class="section-h-sm">Traccia audio di riferimento</div>
+      <div class="audio-ref-row">
+        <input type="text" id="song-audio-label" placeholder="Nome traccia (promemoria)">
+        <label class="btn btn-secondary" for="song-audio-file">Apri file…</label>
+        <input type="file" id="song-audio-file" accept="audio/*" class="hidden">
+      </div>
+      <audio id="song-audio-player" controls class="hidden"></audio>
+      <div class="field-row">
+        <input type="text" id="song-audio-url" placeholder="oppure incolla un link (Drive, ecc.)">
+      </div>
+
+      <div class="section-h-sm legend-row">
+        Griglia — clic su uno slot per aprire note, intensità e mano; frecce ◀▶ per spostarti, cifre 0–9 per aggiungere/togliere note, spazio per silenzio, Canc per svuotare
+      </div>
+      <div class="notation-toggle" id="song-notation-toggle">
+        <span class="hint-text">Note come:</span>
+        <button type="button" class="chip" data-mode="numero">Numero</button>
+        <button type="button" class="chip" data-mode="lettera">Lettera</button>
+        <button type="button" class="chip" data-mode="solfeggio">Solfeggio</button>
+      </div>
+      <div id="song-bars" class="bars-wrap"></div>
+      <button class="btn btn-secondary btn-block" id="song-add-bar">+ Aggiungi misura</button>
+
+      <div class="editor-actions">
+        <button class="btn btn-ghost" id="song-play-toggle">▶ Riproduci in loop</button>
+        <button class="btn btn-primary" id="song-save">Salva canzone</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISTA: DETTAGLIO RITMO -->
+  <section id="view-rhythm-detail" class="view hidden">
+    <div class="editor-header">
+      <button class="btn-back" id="rd-back">← Indietro</button>
+      <div class="detail-header-actions">
+        <button class="icon-btn" id="rd-fav" title="Preferito">★</button>
+        <button class="icon-btn" id="rd-dup" title="Duplica come nuovo ritmo">⧉</button>
+        <button class="icon-btn" id="rd-edit" title="Modifica">✎</button>
+      </div>
+    </div>
+    <h1 id="rd-title" class="detail-title"></h1>
+    <div id="rd-chips" class="chip-row"></div>
+    <p id="rd-bpm" class="detail-meta"></p>
+    <p id="rd-notes" class="detail-notes"></p>
+    <div id="rd-tab" class="tab-display"></div>
+    <div class="editor-actions">
+      <button class="btn btn-primary btn-block btn-lg" id="rd-play">▶ Riproduci in loop</button>
+    </div>
+  </section>
+
+  <!-- VISTA: DETTAGLIO CANZONE -->
+  <section id="view-song-detail" class="view hidden">
+    <div class="editor-header">
+      <button class="btn-back" id="sd-back">← Indietro</button>
+      <div class="detail-header-actions">
+        <button class="icon-btn" id="sd-fav" title="Preferito">★</button>
+        <button class="icon-btn" id="sd-dup" title="Duplica come nuova canzone">⧉</button>
+        <button class="icon-btn" id="sd-edit" title="Modifica">✎</button>
+      </div>
+    </div>
+    <h1 id="sd-title" class="detail-title"></h1>
+    <div id="sd-chips" class="chip-row"></div>
+    <p id="sd-bpm" class="detail-meta"></p>
+    <p id="sd-notes" class="detail-notes"></p>
+    <div id="sd-audio-wrap"></div>
+    <div class="notation-toggle" id="sd-notation-toggle">
+      <span class="hint-text">Note come:</span>
+      <button type="button" class="chip" data-mode="numero">Numero</button>
+      <button type="button" class="chip" data-mode="lettera">Lettera</button>
+      <button type="button" class="chip" data-mode="solfeggio">Solfeggio</button>
+    </div>
+    <div id="sd-tab" class="tab-display tab-display-song"></div>
+    <div class="editor-actions">
+      <button class="btn btn-primary btn-block btn-lg" id="sd-play">▶ Riproduci in loop</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Popup selezione note per slot canzone -->
+<div id="note-picker" class="sheet-overlay hidden">
+  <div class="sheet">
+    <div class="sheet-title">Note in questo momento</div>
+    <div id="note-picker-grid" class="note-picker-grid"></div>
+    <p class="hint-text">Tocca per aggiungere/togliere. Tieni premuto un numero selezionato per cambiarne l'intensità.</p>
+    <button class="btn btn-primary btn-block" id="note-picker-done">Fatto</button>
+  </div>
+</div>
+
+<nav class="bottombar">
+  <button class="tab-btn active" data-tab="rhythms">
+    <span class="tab-icon">◐</span><span>Ritmi</span>
+  </button>
+  <button class="tab-btn" data-tab="songs">
+    <span class="tab-icon">♪</span><span>Canzoni</span>
+  </button>
+  <button class="tab-btn" data-tab="metronome">
+    <span class="tab-icon">◷</span><span>Metronomo</span>
+  </button>
+  <button class="fab" id="fab-new" title="Nuovo">+</button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
